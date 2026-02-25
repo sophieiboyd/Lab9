@@ -1,7 +1,7 @@
 ---
 title: "Lab 09: Algorithmic Bias"
-author: "Insert your name here"
-date: "Insert date here"
+author: "Sophie Boyd"
+date: "2-27-26"
 output: github_document
 ---
 
@@ -19,10 +19,58 @@ library(fairness)
 For this lab, we'll use the COMPAS dataset compiled by ProPublica. The data has been preprocessed and cleaned for you. You'll have to load it yourself. The dataset is available in the `data` folder, but I've changed the file name from `compas-scores-two-years.csv` to `compas-scores-2-years.csv`. I've done this help you practice debugging code when you encounter an error.
 
 ```{r}
-compas <- read_csv("data/compas-scores-two-years.csv")
+compas <- read_csv("data/compas-scores-2-years.csv")
 ```
 
+### Exercise 1
 
-## Additional Exercises  
+```{r dimensions}
+nrow(compas)
+ncol(compas)
+```
 
-Almost there! Keep building on your work and follow the same structure for any remaining exercises. Each exercise builds on the last, so take your time and make sure your code is working as expected.  
+The datset contains 7214 observations of 53 variables. Each row represents a defendant and the variables provide demographic information about the defendants and details about their charges, criminal history,  estimated future risk of recidivism, and actual rates of recidivism.
+
+### Exercise 2
+
+As far as I know, each row represents a unique defendant. I might be missing something...
+
+### Exercise 3
+
+```{r dist-risk-scores}
+compas %>%
+  ggplot(aes(x = decile_score...12)) +
+  geom_histogram(binwidth=.5) + 
+  labs(x = 'COMPAS risk scores',
+       y = 'Count')
+```
+The distribution is left-skewed. The majority of the defendants had a low risk score, and the numbers of defendants with higher scores follow a downward trend.
+
+### Exercise 4
+
+```{r dist-risk-race}
+compas %>%
+  ggplot(aes(x = decile_score...12)) +
+  geom_histogram(binwidth=.4) + 
+  labs(x = 'COMPAS risk scores',
+       y = 'Count') +
+  facet_wrap(~race, nrow = 6) 
+```
+
+```{r dist-risk-sex}
+compas %>%
+  ggplot(aes(x = decile_score...12)) +
+  geom_histogram(binwidth=.4) + 
+  labs(x = 'COMPAS risk scores',
+       y = 'Count') +
+  facet_wrap(~sex, nrow = 2) 
+```
+
+```{r dist-risk-age-cat}
+compas %>%
+  ggplot(aes(x = decile_score...12)) +
+  geom_histogram(binwidth=.4) + 
+  labs(x = 'COMPAS risk scores',
+       y = 'Count') +
+  facet_wrap(~age_cat, nrow = 6) 
+```
