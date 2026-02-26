@@ -9,18 +9,33 @@ output: github_document
 
 First, let's load the necessary packages:  
 
-```{r load-packages, message = FALSE}
+```{r load-packages, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(fairness)
+library(janitor)
 ```
 
 ### The data
 
 For this lab, we'll use the COMPAS dataset compiled by ProPublica. The data has been preprocessed and cleaned for you. You'll have to load it yourself. The dataset is available in the `data` folder, but I've changed the file name from `compas-scores-two-years.csv` to `compas-scores-2-years.csv`. I've done this help you practice debugging code when you encounter an error.
 
-```{r}
+```{r read-data, message=FALSE}
 compas <- read_csv("data/compas-scores-2-years.csv")
 ```
+
+```{r clean-data}
+# Load the COMPAS data
+compas <- read_csv("data/compas-scores-2-years.csv") %>%
+  clean_names() %>%
+  rename(
+    decile_score = decile_score_12,
+    priors_count = priors_count_15
+  )
+
+# Take a look at the data
+glimpse(compas)
+```
+
 
 ### Exercise 1
 
@@ -39,7 +54,7 @@ As far as I know, each row represents a unique defendant. I might be missing som
 
 ```{r dist-risk-scores}
 compas %>%
-  ggplot(aes(x = decile_score...12)) +
+  ggplot(aes(x = decile_score)) +
   geom_histogram(binwidth=.5) + 
   labs(x = 'COMPAS risk scores',
        y = 'Count')
@@ -50,7 +65,7 @@ The distribution is left-skewed. The majority of the defendants had a low risk s
 
 ```{r dist-risk-race}
 compas %>%
-  ggplot(aes(x = decile_score...12)) +
+  ggplot(aes(x = decile_score)) +
   geom_histogram(binwidth=.4) + 
   labs(x = 'COMPAS risk scores',
        y = 'Count') +
@@ -59,7 +74,7 @@ compas %>%
 
 ```{r dist-risk-sex}
 compas %>%
-  ggplot(aes(x = decile_score...12)) +
+  ggplot(aes(x = decile_score)) +
   geom_histogram(binwidth=.4) + 
   labs(x = 'COMPAS risk scores',
        y = 'Count') +
@@ -68,9 +83,137 @@ compas %>%
 
 ```{r dist-risk-age-cat}
 compas %>%
-  ggplot(aes(x = decile_score...12)) +
+  ggplot(aes(x = decile_score)) +
   geom_histogram(binwidth=.4) + 
   labs(x = 'COMPAS risk scores',
        y = 'Count') +
   facet_wrap(~age_cat, nrow = 6) 
 ```
+
+### Exercise 5
+
+```{r risk-recid}
+compas %>%
+  ggplot(aes(x = decile_score)) + 
+  geom_bar() +
+  facet_wrap(~two_year_recid, nrow=2) +
+  labs(x = 'COMPAS score',
+       y = 'Count',
+       )
+```
+
+Higher risk scores do not correspond to higher rates of recidivism. Among defendants who did recidivate, there are no meaningful differences in their COMPAS scores.
+
+### Exercise 6
+
+```{r classification}
+compas <- compas %>%
+  mutate(compas_classification = case_when(
+    decile_score >= 7 & two_year_recid == 1 ~ "TP",
+    decile_score <= 7 & two_year_recid == 0 ~ "TN",
+    decile_score >= 7 & two_year_recid == 0 ~ "FP",
+    decile_score <= 7 & two_year_recid == 1 ~ "FN"
+  ))
+```
+
+### Exercise 7
+
+```{r accuracy}
+compas %>%
+  count(compas_classification)
+```
+
+### Exercise 7
+
+(3561 + 1351)/7214
+
+The COMPAS score has a 68% accuracy rate.
+
+### Exercise 8
+
+```{r risk-black-white}
+compas%>%
+  filter(race %in% c("African-American", "Caucasian")) %>%
+  ggplot(aes(x = decile_score)) + 
+  geom_bar() +
+  facet_wrap(~race, nrow=2) +
+  labs(x = 'COMPAS score',
+       y = 'Count',
+       )
+```
+
+Compared to white defendants, Black defendants are vastly overrepresented in the high-risk scores.
+
+### Exercise 9
+
+```{r high-risk}
+compas <- compas %>%
+  mutate(highrisk = case_when(
+    decile_score >= 7 ~ 1,
+    decile_score < 7 ~ 0
+  ))
+
+compas %>%
+  group_by(race) %>%
+  filter(highrisk == 1) %>%
+  count(highrisk) %>%
+  ungroup()
+```
+
+```{r}
+1425 / 1995
+
+419/ 1995
+```
+
+Yes there is a disparity. Black defendants make up a much higher percentage of high-risk scores than white defendants. 
+
+```{r}
+non_recidivists <- compas %>%
+  filter(two_year_recid == 0)
+  
+non_recidivists %>%
+  count(highrisk)
+```
+
+```{r}
+644 / (3319+644)
+```
+
+```{r}
+non_recidivists %>%
+  filter(race %in% c("African-American", "Caucasian")) %>%
+  group_by(race) %>%
+  count(highrisk) %>%
+  ungroup()
+```
+
+```{r}
+compas <- compas %>%
+  mutate(lowrisk = case_when(
+    decile_score <=4 ~ 1,
+    decile_score > 4 ~ 0
+  ))
+
+recidivists <- compas %>%
+  filter(two_year_recid == 1)
+  
+recidivists %>%
+  count(lowrisk)
+
+recidivists %>%
+  filter(race %in% c("African-American", "Caucasian")) %>%
+  group_by(race) %>%
+  count(lowrisk) %>%
+  ungroup()
+```
+
+```{r}
+non_recidivists %>%
+  filter(race %in% c("African-American", "Caucasian")) %>%
+  ggplot(aes(x = highrisk, group = race)) +
+  geom_bar() +
+  facet_wrap(~race, nrow=2)
+```
+
+
