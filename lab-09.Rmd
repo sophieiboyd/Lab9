@@ -19,21 +19,13 @@ library(janitor)
 
 For this lab, we'll use the COMPAS dataset compiled by ProPublica. The data has been preprocessed and cleaned for you. You'll have to load it yourself. The dataset is available in the `data` folder, but I've changed the file name from `compas-scores-two-years.csv` to `compas-scores-2-years.csv`. I've done this help you practice debugging code when you encounter an error.
 
-```{r read-data, message=FALSE}
-compas <- read_csv("data/compas-scores-2-years.csv")
-```
-
-```{r clean-data}
-# Load the COMPAS data
+```{r read-and-clean-data, message=FALSE}
 compas <- read_csv("data/compas-scores-2-years.csv") %>%
   clean_names() %>%
   rename(
     decile_score = decile_score_12,
     priors_count = priors_count_15
   )
-
-# Take a look at the data
-glimpse(compas)
 ```
 
 
@@ -44,11 +36,11 @@ nrow(compas)
 ncol(compas)
 ```
 
-The datset contains 7214 observations of 53 variables. Each row represents a defendant and the variables provide demographic information about the defendants and details about their charges, criminal history,  estimated future risk of recidivism, and actual rates of recidivism.
+The datset contains 7214 observations of 53 variables. Each row represents a defendant. The variables provide demographic information about the defendants and details about their charges, criminal history, estimated future risk of recidivism, and actual rates of recidivism.
 
 ### Exercise 2
 
-As far as I know, each row represents a unique defendant. I might be missing something...
+As far as I know, each row represents a unique defendant. (I could be missing something!)
 
 ### Exercise 3
 
@@ -59,7 +51,7 @@ compas %>%
   labs(x = 'COMPAS risk scores',
        y = 'Count')
 ```
-The distribution is left-skewed. The majority of the defendants had a low risk score, and the numbers of defendants with higher scores follow a downward trend.
+The distribution is right-skewed. The majority of the defendants had a low risk score, and the numbers of defendants with higher scores follow a downward trend.
 
 ### Exercise 4
 
