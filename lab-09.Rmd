@@ -8,6 +8,7 @@ output: github_document
 ## search I did for exercise 12: 
 https://www.google.com/search?q=how+to+restrict+range+of+x+values+in+ggplot2&sca_esv=11f77b5468a41098&rlz=1C5CHFA_enUS912US912&sxsrf=ANbL-n4n0DKV07oSujm7po9TBUMRugrUTA%3A1772208420436&ei=JMGhaarjGb6K6-AP2tTtkQ0&biw=1440&bih=716&oq=how+to+restrict+range+of+x+values+&gs_lp=Egxnd3Mtd2l6LXNlcnAiImhvdyB0byByZXN0cmljdCByYW5nZSBvZiB4IHZhbHVlcyAqAggDMgUQIRigATIFECEYoAEyBRAhGKABMgUQIRigATIFECEYoAEyBRAhGJ8FMgUQIRifBTIFECEYnwUyBRAhGJ8FMgUQIRifBUiYU1DsBljlQnAFeAGQAQCYAZ8BoAHfG6oBBTE5LjE3uAEByAEA-AEBmAIpoAK5HsICChAAGLADGNYEGEfCAgsQABiABBiRAhiKBcICDhAuGIAEGLEDGNEDGMcBwgIKEAAYgAQYQxiKBcICCxAuGIAEGNEDGMcBwgIOEC4YgAQYsQMYgwEYigXCAggQABiABBixA8ICChAuGIAEGEMYigXCAg0QLhiABBhDGOUEGIoFwgIOEAAYgAQYsQMYgwEYigXCAgUQABiABMICBRAuGIAEwgILEAAYgAQYsQMYigXCAggQLhiABBixA8ICCxAAGIAEGLEDGIMBwgIGEAAYFhgewgIFECEYqwLCAgcQIRigARgKmAMAiAYBkAYIkgcFMjAuMjGgB8TJArIHBTE1LjIxuAeQHsIHBjItMzYuNcgHhgKACAA&sclient=gws-wiz-serp
 
+
 ## Load Packages and Data  
 
 First, let's load the necessary packages:  
@@ -209,27 +210,23 @@ Compared to white defendants, Black defendants had a higher false positive rate 
 
 ### Exercise 12
 
-```{r frequ-priors}
+```{r risk-by-priors, fig.height=10}
 compas %>%
-  count(priors_count, desc. = TRUE)
-
-compas <- compas %>%
-  mutate(cont_decile_score = as.numeric(as.character(decile_score)))
+  ggplot(aes(x = priors_count, y = decile_score, color = race)) +
+  geom_jitter() +
+  facet_wrap(~race, nrow = 6)
 ```
 
-
-```{r risk-by-priors}
-compas %>%
- ggplot(aes(x = priors_count, y = cont_decile_score, color = race, fill = race)) +
-  geom_point() 
-```
+Priors appear to be most influential on COMPAS scores for Black and Native American defendants.
 
 ### Exercise 13
 
 ```{r calibration}
-compas %>%
-  group_by(race, decile_score) %>%
-  summarise()
-  mutate(recid_rate = )
+compas$decile_cat <- as.factor(compas$decile_score)
+  
+compas%>%
+  group_by(decile_cat, race, is_recid) %>%
+  summarise(n = n()) %>%
+  mutate(recid_rate = n / sum(n))
 ```
 
