@@ -8,6 +8,22 @@ output: github_document
 ## search I did for exercise 12: 
 https://www.google.com/search?q=how+to+restrict+range+of+x+values+in+ggplot2&sca_esv=11f77b5468a41098&rlz=1C5CHFA_enUS912US912&sxsrf=ANbL-n4n0DKV07oSujm7po9TBUMRugrUTA%3A1772208420436&ei=JMGhaarjGb6K6-AP2tTtkQ0&biw=1440&bih=716&oq=how+to+restrict+range+of+x+values+&gs_lp=Egxnd3Mtd2l6LXNlcnAiImhvdyB0byByZXN0cmljdCByYW5nZSBvZiB4IHZhbHVlcyAqAggDMgUQIRigATIFECEYoAEyBRAhGKABMgUQIRigATIFECEYoAEyBRAhGJ8FMgUQIRifBTIFECEYnwUyBRAhGJ8FMgUQIRifBUiYU1DsBljlQnAFeAGQAQCYAZ8BoAHfG6oBBTE5LjE3uAEByAEA-AEBmAIpoAK5HsICChAAGLADGNYEGEfCAgsQABiABBiRAhiKBcICDhAuGIAEGLEDGNEDGMcBwgIKEAAYgAQYQxiKBcICCxAuGIAEGNEDGMcBwgIOEC4YgAQYsQMYgwEYigXCAggQABiABBixA8ICChAuGIAEGEMYigXCAg0QLhiABBhDGOUEGIoFwgIOEAAYgAQYsQMYgwEYigXCAgUQABiABMICBRAuGIAEwgILEAAYgAQYsQMYigXCAggQLhiABBixA8ICCxAAGIAEGLEDGIMBwgIGEAAYFhgewgIFECEYqwLCAgcQIRigARgKmAMAiAYBkAYIkgcFMjAuMjGgB8TJArIHBTE1LjIxuAeQHsIHBjItMzYuNcgHhgKACAA&sclient=gws-wiz-serp
 
+## exercise 3:
+https://ggplot2.tidyverse.org/articles/faq-axes.html#:~:text=Dodge%20axis%20labels:%20Add%20a,rows%20to%20render%20the%20labels.
+
+## exercise 7:
+
+proportions_df <- df %>%
+  group_by(category) %>%
+  summarize(count = n()) %>%
+  mutate(proportion = count / sum(count)) #
+
+print(proportions_df)
+
+https://datavizm20.classes.andrewheiss.com/lesson/04-lesson/#:~:text=When%20you%20visualize%20proportions%20with%20ggplot%2C%20you'll,summarize()%20)%20*%20Plot%20the%20summarized%20data.
+https://collinn.github.io/f24/labs/04_dplyr.html#:~:text=Whenever%20functions%20from%20the%20dplyr%20package%20see,it%20intends%20to%20at%20the%20group%20level.
+https://www.r-bloggers.com/2024/02/group-by-minimum-in-r/#:~:text=It%20(%20The%20GROUP%20BY%20clause%20),to%20perform%20these%20operations%20on%20data%20frames.
+scaler.com/topics/dplyr-package-in-r/#:~:text=As%20R%20users%20commonly%20work%20with%20data,a%20more%20natural%20workflow%2C%20simplifying%20data-wrangling%20tasks.
 
 ## Load Packages and Data  
 
@@ -51,9 +67,11 @@ As far as I can tell, each row represents a unique defendant. (I could be missin
 ```{r dist-risk-scores}
 compas %>%
   ggplot(aes(x = decile_score)) +
-  geom_histogram(binwidth=.5) + 
+  geom_bar() + 
   labs(x = 'COMPAS risk scores',
-       y = 'Count')
+       y = 'Count',
+       title = 'Distribution of COMPAS Risk Scores') +
+    scale_x_continuous(breaks = seq(1,10, by =1), labels = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"))
 ```
 The distribution is right-skewed. The majority of the defendants had a low risk score, and the numbers of defendants with higher scores follow a downward trend.
 
@@ -67,7 +85,8 @@ compas %>%
   ggplot(aes(x = race_ordered)) +
   geom_bar() + 
   labs(x = 'Race',
-       y = 'Count') 
+       y = 'Count',
+       title = 'Distribution of Defendants by Race') 
 ```
 
 ```{r dist-sex}
@@ -78,30 +97,42 @@ compas %>%
   ggplot(aes(x = sex_ordered)) +
   geom_bar() + 
   labs(x = 'Sex',
-       y = 'Count') 
+       y = 'Count',
+       title = 'Distribution of Defendants by Sex') 
 ```
 
 ```{r dist-age-cat}
+compas <- compas %>%
+  mutate(age_cat_ordered = fct_relevel(age_cat, 'Less than 25', '25 - 45', 'Greater than 45'))
+
 compas %>%
-  ggplot(aes(x = age_cat)) +
+  ggplot(aes(x = age_cat_ordered)) +
   geom_bar() + 
   labs(x = 'Age Category',
-       y = 'Count') 
+       y = 'Count',
+       title = 'Distribution of Defendants by Age Category') 
 ```
 
 ### Exercise 5
 
 ```{r risk-recid}
+compas <- compas %>%
+  mutate(recid_label = case_when(
+    two_year_recid == 0 ~ "Did not recidivate",
+    two_year_recid == 1 ~ "Recidivated"
+  ))
+
 compas %>%
   ggplot(aes(x = decile_score)) + 
   geom_bar() +
-  facet_wrap(~two_year_recid, nrow=2) +
+  facet_wrap(~recid_label, nrow=2) +
   labs(x = 'COMPAS score',
        y = 'Count',
-       )
+       ) +
+  scale_x_continuous(breaks = seq(1,10, by =1), labels = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"))
 ```
 
-Higher risk scores do not correspond to higher rates of recidivism. Among defendants who did recidivate (the lower plot), there are no meaningful differences in their COMPAS scores.
+Higher risk scores do not correspond to higher rates of recidivism. Among defendants who did recidivate (the lower half of the plot), there are no meaningful differences in their COMPAS scores.
 
 ### Exercise 6
 
@@ -109,9 +140,9 @@ Higher risk scores do not correspond to higher rates of recidivism. Among defend
 compas <- compas %>%
   mutate(compas_classification = case_when(
     decile_score >= 7 & two_year_recid == 1 ~ "TP",
-    decile_score <= 7 & two_year_recid == 0 ~ "TN",
+    decile_score <= 4 & two_year_recid == 0 ~ "TN",
     decile_score >= 7 & two_year_recid == 0 ~ "FP",
-    decile_score <= 7 & two_year_recid == 1 ~ "FN"
+    decile_score <= 4 & two_year_recid == 1 ~ "FN"
   ))
 ```
 
@@ -125,7 +156,7 @@ compas %>%
   ungroup()
 ```
 
-The COMPAS score has a 68% accuracy rate (combined frequencies of true positives and true negatives).
+The COMPAS score has a 55% accuracy rate (combined frequencies of true positives and true negatives).
 
 ### Exercise 8
 
@@ -172,7 +203,14 @@ non_recidivists %>%
   group_by(race, compas_classification) %>%
   summarise(n=n()) %>%
   mutate(frequency = n / sum(n))
+
+non_recidivists_prop <- non_recidivists %>%
+  filter(race %in% c("African-American", "Caucasian")) %>%
+  group_by(race, compas_classification) %>%
+  summarise(n=n()) %>%
+  mutate(frequency = n / sum(n))
 ```
+The false positive rate among Black defendants was 24.9%, compared to a rate of just 9.1% among white defendants. 
 
 ```{r FN-rates}
 recidivists <- compas %>%
@@ -183,30 +221,33 @@ recidivists %>%
   group_by(race, compas_classification) %>%
   summarise(n=n()) %>%
   mutate(frequency = n / sum(n))
+
+recidivists_prop <- recidivists %>%
+  filter(race %in% c("African-American", "Caucasian")) %>%
+  group_by(race, compas_classification) %>%
+  summarise(n=n()) %>%
+  mutate(frequency = n / sum(n))
 ```
+The false negative rate among white defendants (47.7%) was considerably higher than the false negative rate among Black defendants (28.0%).
 
 ### Exercise 11
 
 ```{r FP-plot-by-race}
-non_recidivists%>%
-  filter(race %in% c("African-American", "Caucasian")) %>%
-  group_by(race, compas_classification) %>%
-  summarise(n = n()) %>%
-  mutate(prop = n / sum(n)) %>%
-  ggplot(aes(x = compas_classification, y = prop, color = compas_classification, fill = compas_classification)) +
-  geom_col(show.legend = FALSE) +
-  facet_wrap(~race, nrow=2)
+non_recidivists_prop%>%
+  filter(compas_classification %in% "FP") %>%
+  ggplot(aes(x = race, y = frequency)) +
+  labs(x = 'Race',
+       y = 'False Positive Rate') +
+  geom_col() 
 ```
 
 ```{r FN-plot-by-race}
-recidivists%>%
-  filter(race %in% c("African-American", "Caucasian")) %>%
-  group_by(race, compas_classification) %>%
-  summarise(n = n()) %>%
-  mutate(prop = n / sum(n)) %>%
-  ggplot(aes(x = compas_classification, y = prop, color = compas_classification, fill = compas_classification)) +
-  geom_col(show.legend = FALSE) +
-  facet_wrap(~race, nrow=2)
+recidivists_prop%>%
+  filter(compas_classification %in% c("FN")) %>%
+  ggplot(aes(x = race, y = frequency)) +
+  labs(x = 'Race',
+       y = 'False Negative Rate') +
+  geom_col() 
 ```
 
 Compared to white defendants, Black defendants had a higher false positive rate and a lower false negative rate, meaning that their recidivism risk was more likely to be overestimated and less likely to be underestimated.
