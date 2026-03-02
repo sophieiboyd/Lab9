@@ -59,31 +59,34 @@ The distribution is right-skewed. The majority of the defendants had a low risk 
 
 ### Exercise 4
 
-```{r dist-risk-race}
+```{r dist-race}
+compas <- compas %>%
+  mutate(race_ordered = fct_relevel(race, 'African-American', 'Caucasian', 'Hispanic', 'Other', 'Asian', 'Native American'))
+
 compas %>%
-  ggplot(aes(x = decile_score)) +
-  geom_histogram(binwidth=.4) + 
-  labs(x = 'COMPAS risk scores',
-       y = 'Count') +
-  facet_wrap(~race, nrow = 6) 
+  ggplot(aes(x = race_ordered)) +
+  geom_bar() + 
+  labs(x = 'Race',
+       y = 'Count') 
 ```
 
-```{r dist-risk-sex}
+```{r dist-sex}
+compas <- compas %>%
+  mutate(sex_ordered = fct_relevel(sex, 'Male', 'Female'))
+  
 compas %>%
-  ggplot(aes(x = decile_score)) +
-  geom_histogram(binwidth=.4) + 
-  labs(x = 'COMPAS risk scores',
-       y = 'Count') +
-  facet_wrap(~sex, nrow = 2) 
+  ggplot(aes(x = sex_ordered)) +
+  geom_bar() + 
+  labs(x = 'Sex',
+       y = 'Count') 
 ```
 
-```{r dist-risk-age-cat}
+```{r dist-age-cat}
 compas %>%
-  ggplot(aes(x = decile_score)) +
-  geom_histogram(binwidth=.4) + 
-  labs(x = 'COMPAS risk scores',
-       y = 'Count') +
-  facet_wrap(~age_cat, nrow = 6) 
+  ggplot(aes(x = age_cat)) +
+  geom_bar() + 
+  labs(x = 'Age Category',
+       y = 'Count') 
 ```
 
 ### Exercise 5
